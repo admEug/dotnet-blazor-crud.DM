@@ -1,0 +1,17 @@
+https://github.com/thbst16/dotnet-blazor-crud 
+
+1. Create the image - Go in the folder where the dockerfile is:
+	docker build -t admeug/blazorcrud-app:v1 .
+
+2. The the image, create a new tag after you change the code, and push it to the dockerhub
+	docker tag SOURCE_IMAGE[:TAG] TARGET_IMAGE[:TAG]
+		docker tag admeug/blazorcrud-app:v1 admeug/blazorcrud-app:v12345_DM
+	
+	docker push admeug/blazorcrud-app:v12345_DM
+	
+3. Get the image from the dockerhub
+	docker pull admeug/blazorcrud-app:v12345_DM
+	
+4. Run the new image from the docker hub
+	docker run -d -p 8080:8080 --name blazor-new-container admeug/blazorcrud-app:v12345_DM
+d-app:v1

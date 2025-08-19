@@ -1,23 +1,38 @@
-### PREPARE
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-env
+# This Dockerfile is for a Blazor WebAssembly app with a server project.
+# It uses a multi-stage build to keep the final image small.
+
+# Stage 1: Build the application
+# Use the .NET SDK image to build and publish the app.
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-### Copy csproj and sln and restore as distinct layers
-COPY Blazorcrud.Client/*.csproj Blazorcrud.Client/
-COPY Blazorcrud.Server/*.csproj Blazorcrud.Server/
-COPY Blazorcrud.Shared/*.csproj Blazorcrud.Shared/
+# Copy the solution file first to leverage Docker layer caching.
+# This assumes the Dockerfile is in the same directory as the .sln file.
 COPY Blazorcrud.sln .
-RUN dotnet restore
 
-### PUBLISH
-FROM build-env AS publish-env
+# Copy the project files for the server, client, and shared projects.
+COPY Blazorcrud.Server/*.csproj Blazorcrud.Server/
+COPY Blazorcrud.Client/*.csproj Blazorcrud.Client/
+COPY Blazorcrud.Shared/*.csproj Blazorcrud.Shared/
+
+# Restore the dependencies for the server project only.
+# This avoids issues with test projects not being in the build context.
+RUN dotnet restore "Blazorcrud.Server/Blazorcrud.Server.csproj"
+
+# Copy the rest of the application source code.
 COPY . .
-RUN dotnet publish "Blazorcrud.sln" -c Release -o /app
 
-### RUNTIME IMAGE
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime-env
+# Publish the server project.
+WORKDIR "/src/Blazorcrud.Server"
+RUN dotnet publish "Blazorcrud.Server.csproj" -c Release -o /app/publish /p:UseAppHost=false
+
+# Stage 2: Create the final runtime image
+# Use the .NET ASP.NET runtime image for the final production image.
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
-COPY --from=publish-env /app .
-ENV ASPNETCORE_URLS=http://+:80
-EXPOSE 80
+
+# Copy the published output from the build stage.
+COPY --from=build /app/publish .
+
+# Set the entrypoint to run the Blazor server application.
 ENTRYPOINT ["dotnet", "Blazorcrud.Server.dll"]
