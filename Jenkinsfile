@@ -17,12 +17,23 @@ pipeline {
                 echo 'Installing Docker client...'
                 script {
                     sh 'apt-get update'
+                    sh 'apt-get install -y docker-compose' // Added docker-compose
                     sh 'apt-get install -y docker.io'
                     sh 'which docker'
                 }
             }
         }
-
+        
+        stage('Start Services') {
+            steps {
+                echo 'Starting Docker Compose services...'
+                script {
+                    sh 'docker-compose up --build -d'
+                    sh 'sleep 30' // Give services time to start
+                }
+            }
+        }
+        
         stage('Restore Dependencies') {
             steps {
                 echo 'Restoring .NET dependencies...'
@@ -39,7 +50,7 @@ pipeline {
                 echo 'Building projects...'
                 script {
                     docker.image('mcr.microsoft.com/dotnet/sdk:8.0').inside {
-                        sh 'dotnet build' // --no-restore flag is removed
+                        sh 'dotnet build'
                     }
                 }
             }
@@ -56,33 +67,12 @@ pipeline {
                 }
             }
         }
-
-        stage('Build and Push Docker Image') {
-            steps {
-                echo 'Building Docker image...'
-                script {
-                    def imageName = "${BUILD_IMAGE_NAME}:${BUILD_NUMBER}"
-                    sh "docker build -t ${imageName} ."
-                }
-            }
-        }
-        
-        stage('Deploy Locally') {
-            steps {
-                echo 'Deploying and running the Docker container...'
-                script {
-                    def imageName = "${BUILD_IMAGE_NAME}:${BUILD_NUMBER}"
-                    sh 'docker stop blazorcrud-container || true'
-                    sh 'docker rm blazorcrud-container || true'
-                    sh "docker run -d -p 80:80 --name blazorcrud-container ${imageName}"
-                }
-            }
-        }
     }
 
     post {
         always {
             echo 'Pipeline finished. Cleaning up workspace...'
+            sh 'docker-compose down'
             cleanWs()
         }
         success {

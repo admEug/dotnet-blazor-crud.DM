@@ -1,0 +1,17 @@
+version: '3.4'
+services:
+  db:
+    image: "mcr.microsoft.com/mssql/server:2022-latest"
+    container_name: mssql-test
+    ports:
+      - "1433:1433"
+    environment:
+      SA_PASSWORD: "Your_Strong_Password_123"
+      ACCEPT_EULA: "Y"
+  blazor-app:
+    build: .
+    container_name: blazor-app-test
+    depends_on:
+      - db
+    environment:
+      ConnectionStrings__DefaultConnection: "Server=mssql-test;Database=blazorcrud;User Id=sa;Password=Your_Strong_Password_123;TrustServerCertificate=True"
