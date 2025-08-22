@@ -8,8 +8,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                echo 'Checking out code from Git...'
-                git branch: 'main', credentialsId: 'github-eugene', url: 'https://github.com/admEug/dotnet-blazor-crud.DM.git'
+                echo 'Code has been checked out automatically.'
             }
         }
 
@@ -56,7 +55,7 @@ pipeline {
                 }
             }
         }
-
+        
         stage('Deploy Locally') {
             steps {
                 echo 'Deploying and running the Docker container...'
