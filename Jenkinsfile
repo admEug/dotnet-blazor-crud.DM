@@ -1,9 +1,5 @@
 pipeline {
-    agent {
-        docker {
-            image 'mcr.microsoft.com/dotnet/sdk:8.0'
-        }
-    }
+    agent any
 
     environment {
         BUILD_IMAGE_NAME = "blazorcrud-app"
@@ -20,23 +16,34 @@ pipeline {
         stage('Restore Dependencies') {
             steps {
                 echo 'Restoring .NET dependencies...'
-                sh 'dotnet restore'
+                script {
+                    docker.image('mcr.microsoft.com/dotnet/sdk:8.0').inside {
+                        sh 'dotnet restore'
+                    }
+                }
             }
         }
 
         stage('Build') {
             steps {
                 echo 'Building projects...'
-                sh 'dotnet build --no-restore'
+                script {
+                    docker.image('mcr.microsoft.com/dotnet/sdk:8.0').inside {
+                        sh 'dotnet build --no-restore'
+                    }
+                }
             }
         }
 
         stage('Run Tests') {
             steps {
-                echo 'Running unit tests...'
-                sh 'dotnet test Blazorcrud.Server.Tests --no-build'
-                echo 'Running integration tests...'
-                sh 'dotnet test Blazorcrud.Server.IntegrationTests --no-build'
+                echo 'Running tests...'
+                script {
+                    docker.image('mcr.microsoft.com/dotnet/sdk:8.0').inside {
+                        sh 'dotnet test Blazorcrud.Server.Tests --no-build'
+                        sh 'dotnet test Blazorcrud.Server.IntegrationTests --no-build'
+                    }
+                }
             }
         }
 
@@ -49,7 +56,7 @@ pipeline {
                 }
             }
         }
-        
+
         stage('Deploy Locally') {
             steps {
                 echo 'Deploying and running the Docker container...'
