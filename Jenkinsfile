@@ -39,7 +39,7 @@ pipeline {
                 echo 'Building projects...'
                 script {
                     docker.image('mcr.microsoft.com/dotnet/sdk:8.0').inside {
-                        sh 'dotnet build --no-restore'
+                        sh 'dotnet build' // --no-restore flag is removed
                     }
                 }
             }
