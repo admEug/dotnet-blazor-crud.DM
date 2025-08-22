@@ -1,5 +1,9 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'mcr.microsoft.com/dotnet/sdk:8.0'
+        }
+    }
 
     environment {
         BUILD_IMAGE_NAME = "blazorcrud-app"
@@ -45,7 +49,7 @@ pipeline {
                 }
             }
         }
-
+        
         stage('Deploy Locally') {
             steps {
                 echo 'Deploying and running the Docker container...'
