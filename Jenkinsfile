@@ -12,6 +12,17 @@ pipeline {
             }
         }
 
+        stage('Install Docker') {
+            steps {
+                echo 'Installing Docker client...'
+                script {
+                    sh 'apt-get update'
+                    sh 'apt-get install -y docker.io'
+                    sh 'which docker'
+                }
+            }
+        }
+
         stage('Restore Dependencies') {
             steps {
                 echo 'Restoring .NET dependencies...'
