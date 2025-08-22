@@ -29,7 +29,7 @@ pipeline {
                 echo 'Starting Docker Compose services...'
                 script {
                     sh 'docker-compose up --build -d'
-                    sh 'sleep 30' // Give services time to start
+                    sh 'sleep 2' // Give services time to start
                 }
             }
         }

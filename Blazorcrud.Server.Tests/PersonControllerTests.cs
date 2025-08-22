@@ -107,7 +107,7 @@ namespace Blazorcrud.Server.Tests
             // Assert
             var okResult = Assert.IsType<OkObjectResult>(result);
             var returnValue = Assert.IsType<Person>(okResult.Value);
-            Assert.Equal(99, returnValue.PersonId);
+            Assert.Equal(id, returnValue.PersonId);
         }
     }
 }
