@@ -1,0 +1,61 @@
+trigger:
+  branches:
+    include:
+      - master
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+  solution: '**/*.sln'
+  buildPlatform: 'Any CPU'
+  buildConfiguration: 'Release'
+  outputPath: '$(Build.ArtifactStagingDirectory)/publish'
+
+steps:
+
+# Step 1: Checkout code
+- task: Checkout@1
+
+# Step 2: Setup .NET SDK
+- task: UseDotNet@2
+  inputs:
+    packageType: 'sdk'
+    version: '8.0.x'
+
+# Step 3: Restore NuGet packages
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'restore'
+    projects: '**/*.csproj'
+
+# Step 4: Build solution
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'build'
+    projects: '**/*.csproj'
+    arguments: '--configuration $(buildConfiguration)'
+
+# Step 5: Run tests
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'test'
+    projects: |
+      **/Blazorcrud.Server.Tests/*.csproj
+      **/Blazorcrud.Server.IntegrationTests/*.csproj
+    arguments: '--no-build --configuration $(buildConfiguration)'
+
+# Step 6: Publish Blazor Server project
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'publish'
+    publishWebProjects: false
+    projects: 'Blazorcrud.Server/Blazorcrud.Server.csproj'
+    arguments: '--configuration $(buildConfiguration) --output $(outputPath)'
+
+# Step 7: Publish build artifacts
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(outputPath)'
+    ArtifactName: 'drop'
+    publishLocation: 'Container'
